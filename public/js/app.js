@@ -19,6 +19,10 @@ angular.module('cerebro', ['ngRoute', 'ngAnimate', 'ui.bootstrap'])
           templateUrl: 'rest/index.html',
           controller: 'RestController'
         })
+        .when('/sql', {
+          templateUrl: 'sql/index.html',
+          controller: 'SqlController'
+        })
         .when('/aliases', {
           templateUrl: 'aliases.html',
           controller: 'AliasesController'
@@ -631,6 +635,64 @@ angular.module('cerebro').controller('ConnectController', [
       ConnectDataService.testConnection(host, success, error);
     };
 
+    $scope.addAndConnect = function(host, clusterName, sqlUrl) {
+      $scope.feedback = undefined;
+      $scope.host = host;
+      $scope.connecting = true;
+      var success = function(data) {
+        $scope.connecting = false;
+        switch (data.status) {
+          case 200:
+            ConnectDataService.addAndConnect(host, clusterName, sqlUrl);
+            $location.path('/overview');
+            break;
+          case 401:
+            $scope.unauthorized = true;
+            break;
+          default:
+            feedback('Unexpected response status: [' + data.status + ']');
+        }
+      };
+      var error = function(data) {
+        $scope.connecting = false;
+        AlertService.error('Error connecting to [' + host + ']', data);
+      };
+      ConnectDataService.testConnection(host, success, error);
+    };
+
+    $scope.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
+      $scope.feedback = undefined;
+      $scope.host = host;
+      $scope.connecting = true;
+      var success = function(data) {
+        $scope.connecting = false;
+        switch (data.status) {
+          case 200:
+            if (username == null || password == null) {
+              ConnectDataService.addAndConnect(host, clusterName, sqlUrl);
+            }else {
+              ConnectDataService.addAndConnectWithCredentials(host, username, password, clusterName, sqlUrl);
+            }
+            $location.path('/overview');
+            break;
+          case 401:
+            $scope.unauthorized = true;
+            break;
+          default:
+            feedback('Unexpected response status: [' + data.status + ']');
+        }
+      };
+      var error = function(data) {
+        $scope.connecting = false;
+        AlertService.error('Error connecting to [' + host + ']', data);
+      };
+      if (username == null || password == null) {
+        ConnectDataService.testConnection(host, success, error);
+      } else {
+        ConnectDataService.testConnectionWithCredentials(host, username, password, success, error);
+      }
+    };
+
     $scope.authorize = function(host, username, pwd) {
       $scope.feedback = undefined;
       $scope.connecting = true;
@@ -681,6 +743,12 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
       $http(config).success(success).error(error);
     };
 
+    this.testConnectionWithCredentials = function(host, username, password, success, error) {
+      var data = {host: host, username: username, password: password};
+      var config = {method: 'POST', url: 'connect', data: data};
+      $http(config).success(success).error(error);
+    };
+
     this.testCredentials = function(host, username, password, success, error) {
       var data = {host: host, username: username, password: password};
       var config = {method: 'POST', url: 'connect', data: data};
@@ -689,6 +757,32 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
 
     this.connect = function(host) {
       DataService.setHost(host);
+    };
+
+    this.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
+      var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
+      var config = {method: 'POST', url: 'hosts/save', data: data};
+      var handleSuccess = function(data) {
+        console.log(data);
+        DataService.setHost(host, username, password);
+      };
+      var failure = function(data) {
+        AlertService.error('Error save cluster ');
+      };
+      $http(config).success(handleSuccess).error(failure);
+    };
+
+    this.addAndConnectWithCredentials = function(host, username, password, clusterName, sqlUrl) {
+      var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
+      var config = {method: 'POST', url: 'hosts/save', data: data};
+      var handleSuccess = function(data) {
+        console.log(data);
+        DataService.setHost(host, username, password);
+      };
+      var failure = function(data) {
+        AlertService.error('Error save cluster ');
+      };
+      $http(config).success(handleSuccess).error(failure);
     };
 
     this.connectWithCredentials = function(host, username, password) {
@@ -1991,6 +2085,209 @@ angular.module('cerebro').factory('SnapshotsDataService', ['DataService',
   }
 ]);
 
+angular.module('cerebro').controller('SqlController', ['$scope', '$http',
+  '$sce','$compile', 'SqlDataService', 'AlertService', 'ModalService',
+  'AceSqlEditorService', 'ClipboardService',
+  function($scope, $http, $sce, $compile, SqlDataService, AlertService,
+           ModalService, AceSqlEditorService, ClipboardService) {
+
+    $scope.editor = undefined;
+    $scope.response = undefined;
+    // 存储返回来的文本数据
+    $scope.responseObj = undefined;
+    $scope.rawReuslt = undefined;
+    $scope.resultList = undefined;
+    // 当前的结果
+    $scope.showResult = undefined;
+    $scope.resultKeys = undefined;
+    // elastic-sql-url eg.
+    $scope.url = undefined;
+    $scope.history = undefined;
+    $scope.explain = undefined;
+    $scope.explainText = undefined;
+    $scope.explainHead = undefined;
+
+    var success = function(response) {
+
+      if (response.explain) {
+        $scope.explain = $sce.trustAsHtml(JSONTree.create(response.explain));
+        $scope.explainText = JSON.stringify(response.explain, null, 2);
+        $scope.explainHead = response.explainHead;
+      }
+      delete response.explain;
+      delete response.explainHead;
+      $scope.responseObj = JSONTree.create(response);
+
+      $scope.rawReuslt = $sce.trustAsHtml($scope.responseObj);
+      $scope.response = $scope.rawReuslt;
+      $scope.resultList = response.result;
+      $scope.resultKeys = Object.keys($scope.resultList);
+      $scope.loadHistory();
+    };
+
+    var failure = function(response) {
+      $scope.response = $sce.trustAsHtml(JSONTree.create(response));
+    };
+
+    $scope.execute = function() {
+      var data = $scope.editor.getStringValue();
+      //var method = $scope.method;
+      $scope.rawReuslt = undefined;
+      $scope.response = undefined;
+      $scope.resultList = undefined;
+      $scope.showResult = undefined;
+
+      try {
+        data = $scope.editor.getValue();
+      } catch (error) {
+      }
+      // SqlDataService.execute(method, data, success, failure);
+      SqlDataService.execute(data, success, failure);
+    };
+
+    // 初始化
+    $scope.setup = function() {
+      $scope.editor = AceSqlEditorService.init('sql-client-editor');
+
+      SqlDataService.load(
+        function(response) {
+          $scope.url = response.url;
+        },
+        function(error) {
+          AlertService.error('Error when load all the tables/indexes', error);
+        }
+      );
+      var history = $scope.loadHistory();
+
+    };
+
+    $scope.loadRequest = function(request) {
+      $scope.method = request.method;
+      $scope.editor.setValue(request.body);
+      $scope.editor.format();
+      // load and collapse
+      var link  = document.getElementById('link_sql_history');
+      link.click();
+    };
+
+    $scope.loadHistory = function() {
+      SqlDataService.history(
+        function(history) {
+          $scope.history = history;
+          // edit中显示最后一次查询
+          // console.log(history);
+          var editorText =  $scope.editor.getValue();
+          // console.log(editorText);
+          if (editorText === undefined) {
+            // 如果为第一次查询
+            if (history !== undefined && history[0] !== undefined) {
+              $scope.editor.setValue(history[0].body);
+            }else {
+              $scope.editor.setValue('SELECT * FROM my_index ');
+            }
+          }else {
+            // do nothing
+          }
+
+          return history;
+        },
+        function(error) {
+          AlertService.error('Error while loading request history', error);
+          return undefined;
+        }
+      );
+    };
+
+    $scope.show = function(result) {
+      if (1 === result) {
+        var raw = $compile($scope.responseObj)($scope);
+        angular.element('#result').html(raw);
+      }else {
+        var resultValue = $scope.resultList[result];
+        $scope.showResult = resultValue.data;
+        var ele = $compile($scope.fillTable())($scope);
+        angular.element('#result').html(ele);
+      }
+    };
+
+    $scope.fillTable = function() {
+      var template = '<table class="table table-bordered">' +
+        '    <thead>' +
+        '      <tr>' +
+        '        <th ng-repeat="(header, value) in showResult[0]">' +
+        '          {{header}}</th>' +
+        '      </tr>' +
+        '    </thead>' +
+        '    <tbody>' +
+        '      <tr ng-repeat="row in showResult">\n' +
+        '        <td ng-repeat="(key, value) in row">\n' +
+        '          {{value}}\n' +
+        '        </td>' +
+        '      </tr>' +
+        '    </tbody>' +
+        '</table>';
+      return template;
+    };
+
+    $scope.copyAsCURLCommand = function() {
+      var path = encodeURI($scope.path);
+      if (path.substring(0, 1) !== '/') {
+        path = '/' + path;
+      }
+      var body = $scope.editor.getValue();
+      var curl = 'curl -X POST \'' + $scope.url + '/a3' +
+        '\' -H \'Content-Type: text/plain\'' +
+        ' -d \'' + body + '\'';
+      ClipboardService.copy(
+        curl,
+        function() {
+          AlertService.info('cURL request successfully copied to clipboard');
+        },
+        function() {
+          AlertService.error('Error while copying request to clipboard');
+        }
+      );
+    };
+
+    $scope.copyExplain = function() {
+      ClipboardService.copy(
+        $scope.explainText,
+        function() {
+          AlertService.info('Explain DSL successfully copied to clipboard');
+        },
+        function() {
+          AlertService.error('Error while copying DSL to clipboard');
+        }
+      );
+    };
+
+  }]
+);
+
+angular.module('cerebro').factory('SqlDataService', ['DataService',
+  function(DataService) {
+
+    this.load = function(success, error) {
+      DataService.send('sql', {}, success, error);
+    };
+
+    this.history = function(success, error) {
+      DataService.send('sql/history', {}, success, error);
+    };
+
+    this.execute = function(data, success, error) {
+      var requestData = {data: data};
+      DataService.send('sql/request', requestData, success, error);
+    };
+
+    this.getHost = function() {
+      return DataService.getHost();
+    };
+
+    return this;
+  }
+]);
+
 angular.module('cerebro').controller('TemplatesController', ['$scope',
   'AlertService', 'AceEditorService', 'TemplatesDataService', 'ModalService',
   function($scope, AlertService, AceEditorService, TemplatesDataService,
@@ -2195,6 +2492,52 @@ function AceEditor(target) {
       var content = this.getValue();
       if (content) {
         this.editor.setValue(JSON.stringify(content, undefined, 2), 0);
+        this.editor.gotoLine(0, 0, false);
+      }
+    } catch (error) { // nothing to do
+    }
+  };
+
+}
+
+function AceSqlEditor(target) {
+  // ace sql editor
+  ace.config.set('basePath', '/');
+  this.editor = ace.edit(target);
+  this.editor.setFontSize('10px');
+  this.editor.setTheme('ace/theme/cerebro');
+  this.editor.getSession().setMode('ace/mode/sql');
+  this.editor.getSession().setTabSize(2); // 制表符
+  this.editor.getSession().setUseWrapMode(true); //自动换行
+  this.editor.setOptions({
+    fontFamily: 'Monaco, Menlo, Consolas, "Courier New", monospace',
+    fontSize: '12px'
+  });
+
+  // sets value and moves cursor to beggining
+  this.setValue = function(value) {
+    this.editor.setValue(value, 1);
+    this.editor.gotoLine(0, 0, false);
+  };
+
+  this.getValue = function() {
+    var content = this.editor.getValue();
+    if (content.trim()) {
+      return content;
+    }
+  };
+
+  this.getStringValue = function() {
+    return this.editor.getValue();
+  };
+
+  // formats the sql content
+  this.format = function() {
+    try {
+      var content = this.getValue();
+      if (content) {
+        this.editor.format();
+        console.log(this.getStringValue());
         this.editor.gotoLine(0, 0, false);
       }
     } catch (error) { // nothing to do
@@ -2847,6 +3190,15 @@ angular.module('cerebro').factory('AceEditorService', function() {
 
   this.init = function(name) {
     return new AceEditor(name);
+  };
+
+  return this;
+});
+
+angular.module('cerebro').factory('AceSqlEditorService', function() {
+
+  this.init = function(name) {
+    return new AceSqlEditor(name);
   };
 
   return this;

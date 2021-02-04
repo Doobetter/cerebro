@@ -76,6 +76,8 @@ trait ElasticClient {
 
   def getIndices(target: ElasticServer): Future[ElasticResponse]
 
+  def getIndicesName(target: ElasticServer): Future[ElasticResponse]
+
   def getTemplates(target: ElasticServer): Future[ElasticResponse]
 
   def createTemplate(name: String, template: JsValue, target: ElasticServer): Future[ElasticResponse]

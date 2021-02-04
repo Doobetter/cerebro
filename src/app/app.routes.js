@@ -19,6 +19,10 @@ angular.module('cerebro', ['ngRoute', 'ngAnimate', 'ui.bootstrap'])
           templateUrl: 'rest/index.html',
           controller: 'RestController'
         })
+        .when('/sql', {
+          templateUrl: 'sql/index.html',
+          controller: 'SqlController'
+        })
         .when('/aliases', {
           templateUrl: 'aliases.html',
           controller: 'AliasesController'

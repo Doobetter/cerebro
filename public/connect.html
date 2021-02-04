@@ -37,16 +37,40 @@
         </tbody>
       </table>
     </div>
+    <div> 添加集群连接</div>
     <form>
+      <div class="form-group">
+        <label for="clusterName">Cluster name(非必须)</label>
+        <input id="clusterName" type="text" ng-model="clusterName"
+               class="form-control form-control-sm "
+               placeholder="cluster-name">
+      </div>
       <div class="form-group">
         <label for="host">Node address</label>
         <input id="host" type="text" ng-model="host"
+               class="form-control form-control-sm "
+               placeholder="e.g.: http://localhost:9200">
+      </div>
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username_i" type="text" ng-model="username"
                class="form-control form-control-sm"
-               placeholder="e.g.: http://localhost:9200"
-               ng-enter="connect(host)">
+               placeholder="admin">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password_i" type="password" ng-model="password"
+               class="form-control form-control-sm">
+      </div>
+      <div class="form-group">
+        <label for="sqlUrl">Elastic-SQL URL(非必须)</label>
+        <input id="sqlUrl" type="text" ng-model="sqlUrl"
+               class="form-control form-control-sm "
+               placeholder="e.g.: http://localhost:9400/elastic/search/a4">
+
       </div>
       <button type="submit" class="btn btn-success pull-right"
-              ng-click="connect(host)"
+              ng-click="addAndConnect(host,username,password,clusterName,sqlUrl)"
               ng-disabled="!host">
         Connect
       </button>

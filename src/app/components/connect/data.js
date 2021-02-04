@@ -18,6 +18,12 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
       $http(config).success(success).error(error);
     };
 
+    this.testConnectionWithCredentials = function(host, username, password, success, error) {
+      var data = {host: host, username: username, password: password};
+      var config = {method: 'POST', url: 'connect', data: data};
+      $http(config).success(success).error(error);
+    };
+
     this.testCredentials = function(host, username, password, success, error) {
       var data = {host: host, username: username, password: password};
       var config = {method: 'POST', url: 'connect', data: data};
@@ -26,6 +32,32 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
 
     this.connect = function(host) {
       DataService.setHost(host);
+    };
+
+    this.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
+      var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
+      var config = {method: 'POST', url: 'hosts/save', data: data};
+      var handleSuccess = function(data) {
+        console.log(data);
+        DataService.setHost(host, username, password);
+      };
+      var failure = function(data) {
+        AlertService.error('Error save cluster ');
+      };
+      $http(config).success(handleSuccess).error(failure);
+    };
+
+    this.addAndConnectWithCredentials = function(host, username, password, clusterName, sqlUrl) {
+      var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
+      var config = {method: 'POST', url: 'hosts/save', data: data};
+      var handleSuccess = function(data) {
+        console.log(data);
+        DataService.setHost(host, username, password);
+      };
+      var failure = function(data) {
+        AlertService.error('Error save cluster ');
+      };
+      $http(config).success(handleSuccess).error(failure);
     };
 
     this.connectWithCredentials = function(host, username, password) {

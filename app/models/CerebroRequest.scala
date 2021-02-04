@@ -49,7 +49,7 @@ object CerebroRequest {
     }
 
     val server = hosts.getHost(hostName) match {
-      case Some(host @ Host(h, a, headersWhitelist)) =>
+      case Some(host @ Host(h, a, s, headersWhitelist)) =>
         val headers = headersWhitelist.flatMap(headerName => request.headers.get(headerName).map(headerName -> _))
         ElasticServer(host.copy(authentication = a.orElse(requestAuth)), headers)
       case None => ElasticServer(Host(hostName, requestAuth))

@@ -187,6 +187,10 @@ class HTTPElasticClient @Inject()(client: WSClient) extends ElasticClient {
     val path = s"/_cat/indices?format=json"
     execute(path, "GET", None, target)
   }
+  def getIndicesName(target: ElasticServer) = {
+    val path = s"/_cat/indices?h=index&format=json"
+    execute(path, "GET", None, target)
+  }
 
   def getTemplates(target: ElasticServer) = {
     val path = s"/_template"
@@ -215,7 +219,12 @@ class HTTPElasticClient @Inject()(client: WSClient) extends ElasticClient {
   }
 
   def analyzeTextByAnalyzer(index: String, analyzer: String, text: String, target: ElasticServer) = {
-    val path = s"/${encoded(index)}/_analyze"
+    var path = ""
+    if(index ==null || "".equals(index)){
+      path = s"/_analyze"
+    }else{
+      path =  s"/${encoded(index)}/_analyze"
+    }
     val body = Json.obj("text" -> text, "analyzer" -> analyzer).toString()
     execute(path, "GET", Some(body), target, Seq(JsonContentType))
   }
@@ -342,6 +351,7 @@ class HTTPElasticClient @Inject()(client: WSClient) extends ElasticClient {
     val path = "/_cat/master"
     execute(s"$path?format=json", "GET", None, target)
   }
+
 }
 
 object HTTPElasticClient {

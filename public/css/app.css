@@ -49,6 +49,7 @@ table.shard-map { table-layout: fixed; }
 .node-labels { padding-top: 5px; }
 
 .normal-action { cursor: pointer; }
+.copyable-action { cursor: text; }
 .table-control { line-height: 50px !important; }
 
 /* Bootstrap tweaking **/

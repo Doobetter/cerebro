@@ -48,6 +48,64 @@ angular.module('cerebro').controller('ConnectController', [
       ConnectDataService.testConnection(host, success, error);
     };
 
+    $scope.addAndConnect = function(host, clusterName, sqlUrl) {
+      $scope.feedback = undefined;
+      $scope.host = host;
+      $scope.connecting = true;
+      var success = function(data) {
+        $scope.connecting = false;
+        switch (data.status) {
+          case 200:
+            ConnectDataService.addAndConnect(host, clusterName, sqlUrl);
+            $location.path('/overview');
+            break;
+          case 401:
+            $scope.unauthorized = true;
+            break;
+          default:
+            feedback('Unexpected response status: [' + data.status + ']');
+        }
+      };
+      var error = function(data) {
+        $scope.connecting = false;
+        AlertService.error('Error connecting to [' + host + ']', data);
+      };
+      ConnectDataService.testConnection(host, success, error);
+    };
+
+    $scope.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
+      $scope.feedback = undefined;
+      $scope.host = host;
+      $scope.connecting = true;
+      var success = function(data) {
+        $scope.connecting = false;
+        switch (data.status) {
+          case 200:
+            if (username == null || password == null) {
+              ConnectDataService.addAndConnect(host, clusterName, sqlUrl);
+            }else {
+              ConnectDataService.addAndConnectWithCredentials(host, username, password, clusterName, sqlUrl);
+            }
+            $location.path('/overview');
+            break;
+          case 401:
+            $scope.unauthorized = true;
+            break;
+          default:
+            feedback('Unexpected response status: [' + data.status + ']');
+        }
+      };
+      var error = function(data) {
+        $scope.connecting = false;
+        AlertService.error('Error connecting to [' + host + ']', data);
+      };
+      if (username == null || password == null) {
+        ConnectDataService.testConnection(host, success, error);
+      } else {
+        ConnectDataService.testConnectionWithCredentials(host, username, password, success, error);
+      }
+    };
+
     $scope.authorize = function(host, username, pwd) {
       $scope.feedback = undefined;
       $scope.connecting = true;

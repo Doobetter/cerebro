@@ -10,6 +10,11 @@ POST        /rest/history                             controllers.RestController
 POST        /rest/request                             controllers.RestController.request
 POST        /rest                                     controllers.RestController.index
 
+# Elatic-SQL module
+POST        /sql/history                             controllers.SqlController.history
+POST        /sql/request                             controllers.SqlController.request
+POST        /sql                                     controllers.SqlController.index
+
 # Overview module
 POST        /overview                                 controllers.ClusterOverviewController.index
 POST        /overview/disable_shard_allocation        controllers.ClusterOverviewController.disableShardAllocation

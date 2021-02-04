@@ -89,6 +89,11 @@ Other settings are exposed through the **conf/application.conf** file found on t
 
 It is also possible to use an alternate configuration file defined on a different location:
 
-```
+```shell
 bin/cerebro -Dconfig.file=/some/other/dir/alternate.conf
 ```
+
+
+
+
+
