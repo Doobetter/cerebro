@@ -723,8 +723,8 @@ angular.module('cerebro').controller('ConnectController', [
 
   }]);
 
-angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
-  function($http, DataService) {
+angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService', 'AlertService',
+  function($http, DataService, AlertService) {
 
     this.getHosts = function(success, error) {
       var config = {method: 'GET', url: 'connect/hosts'};
@@ -2119,6 +2119,7 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
       $scope.responseObj = JSONTree.create(response);
 
       $scope.rawReuslt = $sce.trustAsHtml($scope.responseObj);
+      //$scope.rawReuslt = $scope.responseObj;
       $scope.response = $scope.rawReuslt;
       $scope.resultList = response.result;
       $scope.resultKeys = Object.keys($scope.resultList);

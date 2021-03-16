@@ -32,6 +32,7 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
       $scope.responseObj = JSONTree.create(response);
 
       $scope.rawReuslt = $sce.trustAsHtml($scope.responseObj);
+      //$scope.rawReuslt = $scope.responseObj;
       $scope.response = $scope.rawReuslt;
       $scope.resultList = response.result;
       $scope.resultKeys = Object.keys($scope.resultList);

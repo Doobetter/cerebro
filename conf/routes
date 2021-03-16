@@ -89,6 +89,9 @@ POST        /snapshots/restore                        controllers.SnapshotsContr
 # Cat module
 POST        /cat                                      controllers.CatController.get
 
+# HOST module
+POST        /hosts/save                              controllers.HostController.save
+
 # Auth
 POST        /auth/login                               controllers.AuthController.login
 POST        /auth/logout                              controllers.AuthController.logout
