@@ -73,7 +73,9 @@ angular.module('cerebro').controller('ConnectController', [
       ConnectDataService.testConnection(host, success, error);
     };
 
-    $scope.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
+    $scope.addAndConnect2 = function(host, clusterName, sqlUrl, username, password) {
+      console.log("host=" + host);
+      console.log("clusterName=" + clusterName);
       $scope.feedback = undefined;
       $scope.host = host;
       $scope.connecting = true;

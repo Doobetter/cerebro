@@ -84,8 +84,9 @@ module.exports = function(grunt) {
       ],
       options: {
         preset: 'google',
-        maximumLineLength: 120,
-        requireCamelCaseOrUpperCaseIdentifiers: "ignoreProperties"
+        maximumLineLength: 240,
+        requireCamelCaseOrUpperCaseIdentifiers: "ignoreProperties",
+        validateQuoteMarks : false
       }
     }
   });

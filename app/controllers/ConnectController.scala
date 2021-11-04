@@ -14,8 +14,13 @@ class ConnectController @Inject()(val authentication: AuthenticationModule,
                                   elastic: ElasticClient,
                                   hosts: Hosts) extends InjectedController with AuthSupport {
 
-  def index = AuthAction(authentication)(defaultExecutionContext) { _ =>
-    CerebroResponse(200, JsArray(hosts.getHostNames().map(JsString(_))))
+  def index = AuthAction(authentication)(defaultExecutionContext) {
+
+    _ =>{
+      println(hosts.getHostNames())
+      CerebroResponse(200, JsArray(hosts.getHostNames().map(JsString(_))))
+    }
+
   }
 
   def connect = AuthAction(authentication)(defaultExecutionContext).async(parse.json) { request =>

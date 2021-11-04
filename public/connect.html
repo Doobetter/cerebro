@@ -40,7 +40,7 @@
     <div> 添加集群连接</div>
     <form>
       <div class="form-group">
-        <label for="clusterName">Cluster name(非必须)</label>
+        <label for="clusterName">Cluster name</label>
         <input id="clusterName" type="text" ng-model="clusterName"
                class="form-control form-control-sm "
                placeholder="cluster-name">
@@ -70,7 +70,7 @@
 
       </div>
       <button type="submit" class="btn btn-success pull-right"
-              ng-click="addAndConnect(host,username,password,clusterName,sqlUrl)"
+              ng-click="addAndConnect2(host,clusterName,sqlUrl,username,password)"
               ng-disabled="!host">
         Connect
       </button>

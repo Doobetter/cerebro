@@ -660,7 +660,9 @@ angular.module('cerebro').controller('ConnectController', [
       ConnectDataService.testConnection(host, success, error);
     };
 
-    $scope.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
+    $scope.addAndConnect2 = function(host, clusterName, sqlUrl, username, password) {
+      console.log("host=" + host);
+      console.log("clusterName=" + clusterName);
       $scope.feedback = undefined;
       $scope.host = host;
       $scope.connecting = true;
@@ -723,8 +725,8 @@ angular.module('cerebro').controller('ConnectController', [
 
   }]);
 
-angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService', 'AlertService',
-  function($http, DataService, AlertService) {
+angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
+  function($http, DataService) {
 
     this.getHosts = function(success, error) {
       var config = {method: 'GET', url: 'connect/hosts'};
@@ -759,12 +761,14 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
       DataService.setHost(host);
     };
 
-    this.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
-      var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
+    this.addAndConnect = function(host, clusterName, sqlUrl) {
+      var data = {host: host, name: clusterName, sqlUrl: sqlUrl};
+
+      console.log(data);
+
       var config = {method: 'POST', url: 'hosts/save', data: data};
       var handleSuccess = function(data) {
-        console.log(data);
-        DataService.setHost(host, username, password);
+        DataService.setHost(host);
       };
       var failure = function(data) {
         AlertService.error('Error save cluster ');
@@ -776,7 +780,7 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
       var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
       var config = {method: 'POST', url: 'hosts/save', data: data};
       var handleSuccess = function(data) {
-        console.log(data);
+        //console.log(data);
         DataService.setHost(host, username, password);
       };
       var failure = function(data) {
@@ -2087,14 +2091,15 @@ angular.module('cerebro').factory('SnapshotsDataService', ['DataService',
 
 angular.module('cerebro').controller('SqlController', ['$scope', '$http',
   '$sce','$compile', 'SqlDataService', 'AlertService', 'ModalService',
-  'AceSqlEditorService', 'ClipboardService',
+  'AceSqlEditorService', 'ClipboardService','AceEditorService',
   function($scope, $http, $sce, $compile, SqlDataService, AlertService,
-           ModalService, AceSqlEditorService, ClipboardService) {
+           ModalService, AceSqlEditorService, ClipboardService, AceEditorService) {
 
     $scope.editor = undefined;
-    $scope.response = undefined;
+    //$scope.response = undefined;
     // 存储返回来的文本数据
     $scope.responseObj = undefined;
+    //ace json editor 存储全部结果
     $scope.rawReuslt = undefined;
     $scope.resultList = undefined;
     // 当前的结果
@@ -2107,34 +2112,41 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
     $scope.explainText = undefined;
     $scope.explainHead = undefined;
 
+    var emptyExplain = JSON.stringify(
+      {},
+      undefined,
+      2
+    );
+
     var success = function(response) {
 
       if (response.explain) {
-        $scope.explain = $sce.trustAsHtml(JSONTree.create(response.explain));
-        $scope.explainText = JSON.stringify(response.explain, null, 2);
+        $scope.explainText = JSON.stringify(response.explain, undefined, 2);
+        $scope.explain.setValue($scope.explainText);
         $scope.explainHead = response.explainHead;
       }
       delete response.explain;
       delete response.explainHead;
-      $scope.responseObj = JSONTree.create(response);
+      if (response.startsWith("{")) {
+        $scope.responseObj = JSON.stringify(response, undefined, 2);
+      } else {
+        $scope.responseObj = response;
+      }
 
-      $scope.rawReuslt = $sce.trustAsHtml($scope.responseObj);
-      //$scope.rawReuslt = $scope.responseObj;
-      $scope.response = $scope.rawReuslt;
+      $scope.rawReuslt.setValue($scope.responseObj);
       $scope.resultList = response.result;
       $scope.resultKeys = Object.keys($scope.resultList);
       $scope.loadHistory();
     };
 
     var failure = function(response) {
-      $scope.response = $sce.trustAsHtml(JSONTree.create(response));
+      $scope.rawReuslt.setValue(JSON.stringify(response, undefined, 2));
     };
 
     $scope.execute = function() {
       var data = $scope.editor.getStringValue();
       //var method = $scope.method;
-      $scope.rawReuslt = undefined;
-      $scope.response = undefined;
+      //$scope.rawReuslt = undefined;
       $scope.resultList = undefined;
       $scope.showResult = undefined;
 
@@ -2159,7 +2171,14 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
         }
       );
       var history = $scope.loadHistory();
-
+      // explain json editor
+      $scope.explain = AceEditorService.init('explain-editor');
+      $scope.explain.setReadOnly(true);
+      $scope.explain.setValue(emptyExplain);
+      // rawReuslt
+      $scope.rawReuslt = AceEditorService.init('raw-result-editor');
+      $scope.rawReuslt.setReadOnly(true);
+      $scope.rawReuslt.setValue(emptyExplain);
     };
 
     $scope.loadRequest = function(request) {
@@ -2201,33 +2220,14 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
 
     $scope.show = function(result) {
       if (1 === result) {
-        var raw = $compile($scope.responseObj)($scope);
-        angular.element('#result').html(raw);
+        angular.element('#raw-result-editor')[0].style.display = '';
+        angular.element('#oneResult')[0].style.display = 'none';
       }else {
         var resultValue = $scope.resultList[result];
         $scope.showResult = resultValue.data;
-        var ele = $compile($scope.fillTable())($scope);
-        angular.element('#result').html(ele);
+        angular.element('#raw-result-editor')[0].style.display = 'none';
+        angular.element('#oneResult')[0].style.display = '';
       }
-    };
-
-    $scope.fillTable = function() {
-      var template = '<table class="table table-bordered">' +
-        '    <thead>' +
-        '      <tr>' +
-        '        <th ng-repeat="(header, value) in showResult[0]">' +
-        '          {{header}}</th>' +
-        '      </tr>' +
-        '    </thead>' +
-        '    <tbody>' +
-        '      <tr ng-repeat="row in showResult">\n' +
-        '        <td ng-repeat="(key, value) in row">\n' +
-        '          {{value}}\n' +
-        '        </td>' +
-        '      </tr>' +
-        '    </tbody>' +
-        '</table>';
-      return template;
     };
 
     $scope.copyAsCURLCommand = function() {
@@ -2262,6 +2262,17 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
       );
     };
 
+    $scope.copyRawResult = function() {
+      ClipboardService.copy(
+        $scope.explainText,
+        function() {
+          AlertService.info('Explain DSL successfully copied to clipboard');
+        },
+        function() {
+          AlertService.error('Error while copying DSL to clipboard');
+        }
+      );
+    };
   }]
 );
 
@@ -2460,15 +2471,21 @@ function IndexTemplateFilter(name, pattern) {
 
 function AceEditor(target) {
   // ace editor
+  //ace.config.set('workerPath', "");
   this.editor = ace.edit(target);
   this.editor.setFontSize('10px');
   this.editor.setTheme('ace/theme/cerebro');
   this.editor.getSession().setMode('ace/mode/json');
+
   this.editor.setOptions({
     fontFamily: 'Monaco, Menlo, Consolas, "Courier New", monospace',
     fontSize: '12px',
     fontWeight: '400'
   });
+
+  this.setReadOnly = function(readOnly) {
+    this.editor.setReadOnly(readOnly);
+  };
 
   // sets value and moves cursor to beggining
   this.setValue = function(value) {

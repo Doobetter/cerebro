@@ -27,6 +27,7 @@ class HostController @Inject()(val authentication: AuthenticationModule,
       case (Some(username), Some(password)) => Host(host, Some(ESAuth(username, password)), sql, headersWhitelist)
       case _ =>  Host(host, None, sql, headersWhitelist)
     }
+    print(hostObj)
     val added = hosts.addHost(name, hostObj)
     if(added){
       Future.successful(CerebroResponse(200, Json.obj()))

@@ -34,12 +34,14 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
       DataService.setHost(host);
     };
 
-    this.addAndConnect = function(host, username, password, clusterName, sqlUrl) {
-      var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
+    this.addAndConnect = function(host, clusterName, sqlUrl) {
+      var data = {host: host, name: clusterName, sqlUrl: sqlUrl};
+
+      console.log(data);
+
       var config = {method: 'POST', url: 'hosts/save', data: data};
       var handleSuccess = function(data) {
-        console.log(data);
-        DataService.setHost(host, username, password);
+        DataService.setHost(host);
       };
       var failure = function(data) {
         AlertService.error('Error save cluster ');
@@ -51,7 +53,7 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
       var data = {host: host, username: username, password: password, name: clusterName, sqlUrl: sqlUrl};
       var config = {method: 'POST', url: 'hosts/save', data: data};
       var handleSuccess = function(data) {
-        console.log(data);
+        //console.log(data);
         DataService.setHost(host, username, password);
       };
       var failure = function(data) {

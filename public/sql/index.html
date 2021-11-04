@@ -65,17 +65,11 @@
                 <div id="sql-client-editor" class="ace-cerebro" style="height: 300px;"></div>
             </div>
         </div>
-        <div class="row" ng-if="explain !== undefined">
+        <div class="row" >
 
             <div class="col-lg-12">
                 <h5 ng-model="explainHead">{{explainHead}}</h5>
-
-<!--                <div style="border: 1px solid #55595c; min-height: 300px; overflow: auto; display: block;">-->
-<!--                    <div class="modal-body" id="explain" ng-bind-html="explain" > </div>-->
-<!--                </div>-->
-
-                    <div id="explain" class="ace-cerebro" style="height: 300px"  ng-bind-html="explain" ></div>
-
+                <div id="explain-editor" class="ace-cerebro" style="height: 320px"></div>
             </div>
 
         </div>
@@ -97,8 +91,24 @@
             <div class="col-lg-10 h6"><span> </span></div>
         </div>
         <div class="row">
-            <div style="border: 1px solid #55595c; min-height: 600px; overflow: auto; display: block;">
-                <div class="modal-body" id="result" data-ng-bind-html="response | limitTo:1" >
+            <div id="result"  style="min-height: 600px; overflow: auto; display: block;">
+                <div id="raw-result-editor" style="min-height: 600px; "></div>
+                <div id="oneResult" style="display:none;min-height: 600px;">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th ng-repeat="(header, value) in showResult[0]">
+                                {{header}}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="row in showResult">
+                            <td ng-repeat="(key, value) in row">
+                                {{value}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

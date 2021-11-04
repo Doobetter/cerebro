@@ -1,13 +1,14 @@
 angular.module('cerebro').controller('SqlController', ['$scope', '$http',
   '$sce','$compile', 'SqlDataService', 'AlertService', 'ModalService',
-  'AceSqlEditorService', 'ClipboardService',
+  'AceSqlEditorService', 'ClipboardService','AceEditorService',
   function($scope, $http, $sce, $compile, SqlDataService, AlertService,
-           ModalService, AceSqlEditorService, ClipboardService) {
+           ModalService, AceSqlEditorService, ClipboardService, AceEditorService) {
 
     $scope.editor = undefined;
-    $scope.response = undefined;
+    //$scope.response = undefined;
     // 存储返回来的文本数据
     $scope.responseObj = undefined;
+    //ace json editor 存储全部结果
     $scope.rawReuslt = undefined;
     $scope.resultList = undefined;
     // 当前的结果
@@ -20,34 +21,41 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
     $scope.explainText = undefined;
     $scope.explainHead = undefined;
 
+    var emptyExplain = JSON.stringify(
+      {},
+      undefined,
+      2
+    );
+
     var success = function(response) {
 
       if (response.explain) {
-        $scope.explain = $sce.trustAsHtml(JSONTree.create(response.explain));
-        $scope.explainText = JSON.stringify(response.explain, null, 2);
+        $scope.explainText = JSON.stringify(response.explain, undefined, 2);
+        $scope.explain.setValue($scope.explainText);
         $scope.explainHead = response.explainHead;
       }
       delete response.explain;
       delete response.explainHead;
-      $scope.responseObj = JSONTree.create(response);
+      if (response.startsWith("{")) {
+        $scope.responseObj = JSON.stringify(response, undefined, 2);
+      } else {
+        $scope.responseObj = response;
+      }
 
-      $scope.rawReuslt = $sce.trustAsHtml($scope.responseObj);
-      //$scope.rawReuslt = $scope.responseObj;
-      $scope.response = $scope.rawReuslt;
+      $scope.rawReuslt.setValue($scope.responseObj);
       $scope.resultList = response.result;
       $scope.resultKeys = Object.keys($scope.resultList);
       $scope.loadHistory();
     };
 
     var failure = function(response) {
-      $scope.response = $sce.trustAsHtml(JSONTree.create(response));
+      $scope.rawReuslt.setValue(JSON.stringify(response, undefined, 2));
     };
 
     $scope.execute = function() {
       var data = $scope.editor.getStringValue();
       //var method = $scope.method;
-      $scope.rawReuslt = undefined;
-      $scope.response = undefined;
+      //$scope.rawReuslt = undefined;
       $scope.resultList = undefined;
       $scope.showResult = undefined;
 
@@ -72,7 +80,14 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
         }
       );
       var history = $scope.loadHistory();
-
+      // explain json editor
+      $scope.explain = AceEditorService.init('explain-editor');
+      $scope.explain.setReadOnly(true);
+      $scope.explain.setValue(emptyExplain);
+      // rawReuslt
+      $scope.rawReuslt = AceEditorService.init('raw-result-editor');
+      $scope.rawReuslt.setReadOnly(true);
+      $scope.rawReuslt.setValue(emptyExplain);
     };
 
     $scope.loadRequest = function(request) {
@@ -114,33 +129,14 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
 
     $scope.show = function(result) {
       if (1 === result) {
-        var raw = $compile($scope.responseObj)($scope);
-        angular.element('#result').html(raw);
+        angular.element('#raw-result-editor')[0].style.display = '';
+        angular.element('#oneResult')[0].style.display = 'none';
       }else {
         var resultValue = $scope.resultList[result];
         $scope.showResult = resultValue.data;
-        var ele = $compile($scope.fillTable())($scope);
-        angular.element('#result').html(ele);
+        angular.element('#raw-result-editor')[0].style.display = 'none';
+        angular.element('#oneResult')[0].style.display = '';
       }
-    };
-
-    $scope.fillTable = function() {
-      var template = '<table class="table table-bordered">' +
-        '    <thead>' +
-        '      <tr>' +
-        '        <th ng-repeat="(header, value) in showResult[0]">' +
-        '          {{header}}</th>' +
-        '      </tr>' +
-        '    </thead>' +
-        '    <tbody>' +
-        '      <tr ng-repeat="row in showResult">\n' +
-        '        <td ng-repeat="(key, value) in row">\n' +
-        '          {{value}}\n' +
-        '        </td>' +
-        '      </tr>' +
-        '    </tbody>' +
-        '</table>';
-      return template;
     };
 
     $scope.copyAsCURLCommand = function() {
@@ -175,5 +171,16 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
       );
     };
 
+    $scope.copyRawResult = function() {
+      ClipboardService.copy(
+        $scope.explainText,
+        function() {
+          AlertService.info('Explain DSL successfully copied to clipboard');
+        },
+        function() {
+          AlertService.error('Error while copying DSL to clipboard');
+        }
+      );
+    };
   }]
 );
