@@ -17,10 +17,8 @@ class ConnectController @Inject()(val authentication: AuthenticationModule,
   def index = AuthAction(authentication)(defaultExecutionContext) {
 
     _ =>{
-      println(hosts.getHostNames())
       CerebroResponse(200, JsArray(hosts.getHostNames().map(JsString(_))))
     }
-
   }
 
   def connect = AuthAction(authentication)(defaultExecutionContext).async(parse.json) { request =>

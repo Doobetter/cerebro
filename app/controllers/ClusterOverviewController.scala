@@ -7,6 +7,7 @@ import elastic.{ElasticClient, Error}
 import models.overview.ClusterOverview
 import models.{CerebroResponse, Hosts, ShardStats}
 import services.overview.OverviewDataService
+import play.api.libs.json.{JsString, JsObject, JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -17,7 +18,7 @@ class ClusterOverviewController @Inject()(val authentication: AuthenticationModu
                                           client: ElasticClient) extends BaseController {
 
   def index = process { request =>
-    service.overview(request.target).map(CerebroResponse(200, _))
+    service.overview(request.target).map(CerebroResponse(200,_))
   }
 
   def disableShardAllocation = process { request =>

@@ -35,6 +35,11 @@ angular.module('cerebro').factory('DataService', ['$rootScope', '$timeout',
       this.setHost($location.search().host);
     }
 
+    //--- all---
+    this.getAuthInfo = function(success, error) {
+      clusterRequest('auth/info', {}, success, error);
+    };
+
     // ---------- Navbar ----------
     this.getNavbarData = function(success, error) {
       clusterRequest('navbar', {}, success, error);
@@ -95,6 +100,7 @@ angular.module('cerebro').factory('DataService', ['$rootScope', '$timeout',
           url: path,
           data: angular.merge(data, defaultData) // adds host to data
         };
+        //console.log(config);
         request(config, success, error);
       }
     };

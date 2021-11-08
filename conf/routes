@@ -11,9 +11,9 @@ POST        /rest/request                             controllers.RestController
 POST        /rest                                     controllers.RestController.index
 
 # Elatic-SQL module
-POST        /sql/history                             controllers.SqlController.history
-POST        /sql/request                             controllers.SqlController.request
-POST        /sql                                     controllers.SqlController.index
+POST        /sql/history                              controllers.SqlController.history
+POST        /sql/request                              controllers.SqlController.request
+POST        /sql                                      controllers.SqlController.index
 
 # Overview module
 POST        /overview                                 controllers.ClusterOverviewController.index
@@ -90,10 +90,11 @@ POST        /snapshots/restore                        controllers.SnapshotsContr
 POST        /cat                                      controllers.CatController.get
 
 # HOST module
-POST        /hosts/save                              controllers.HostController.save
+POST        /hosts/save                               controllers.HostController.save
 
 # Auth
 POST        /auth/login                               controllers.AuthController.login
+POST        /auth/info                                controllers.Connect2Controller.index
 POST        /auth/logout                              controllers.AuthController.logout
 GET         /login                                    controllers.AuthController.index
 

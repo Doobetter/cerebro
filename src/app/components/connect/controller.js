@@ -1,6 +1,6 @@
 angular.module('cerebro').controller('ConnectController', [
-  '$scope', '$location', 'ConnectDataService', 'AlertService',
-  function($scope, $location, ConnectDataService, AlertService) {
+  '$scope', '$location', 'DataService', 'ConnectDataService', 'AlertService',
+  function($scope, $location, DataService, ConnectDataService, AlertService) {
 
     $scope.hosts = undefined;
 
@@ -9,6 +9,8 @@ angular.module('cerebro').controller('ConnectController', [
     $scope.unauthorized = false;
 
     $scope.feedback = undefined;
+
+    $scope.username = undefined;
 
     $scope.setup = function() {
       ConnectDataService.getHosts(
@@ -24,6 +26,19 @@ angular.module('cerebro').controller('ConnectController', [
     };
 
     $scope.connect = function(host) {
+      var handleSuccess = function(data) {
+        switch (data.status) {
+          case 200:
+            $scope.username = data.body.username;
+            break;
+          default:
+            //console.log(data);
+            feedback('Unexpected response status: [' + data.status + ']');
+        }
+
+      };
+      ConnectDataService.authInfo("", handleSuccess);
+
       $scope.feedback = undefined;
       $scope.host = host;
       $scope.connecting = true;
@@ -32,7 +47,12 @@ angular.module('cerebro').controller('ConnectController', [
         switch (data.status) {
           case 200:
             ConnectDataService.connect(host);
-            $location.path('/overview');
+            if ($scope.username == "sql") {
+              $location.path('/sql');
+            } else {
+              $location.path('/overview');
+            }
+
             break;
           case 401:
             $scope.unauthorized = true;

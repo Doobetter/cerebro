@@ -586,8 +586,8 @@ var DynamicSettings = (function() {
 
 
 angular.module('cerebro').controller('ConnectController', [
-  '$scope', '$location', 'ConnectDataService', 'AlertService',
-  function($scope, $location, ConnectDataService, AlertService) {
+  '$scope', '$location', 'DataService', 'ConnectDataService', 'AlertService',
+  function($scope, $location, DataService, ConnectDataService, AlertService) {
 
     $scope.hosts = undefined;
 
@@ -596,6 +596,8 @@ angular.module('cerebro').controller('ConnectController', [
     $scope.unauthorized = false;
 
     $scope.feedback = undefined;
+
+    $scope.username = undefined;
 
     $scope.setup = function() {
       ConnectDataService.getHosts(
@@ -611,6 +613,19 @@ angular.module('cerebro').controller('ConnectController', [
     };
 
     $scope.connect = function(host) {
+      var handleSuccess = function(data) {
+        switch (data.status) {
+          case 200:
+            $scope.username = data.body.username;
+            break;
+          default:
+            //console.log(data);
+            feedback('Unexpected response status: [' + data.status + ']');
+        }
+
+      };
+      ConnectDataService.authInfo("", handleSuccess);
+
       $scope.feedback = undefined;
       $scope.host = host;
       $scope.connecting = true;
@@ -619,7 +634,12 @@ angular.module('cerebro').controller('ConnectController', [
         switch (data.status) {
           case 200:
             ConnectDataService.connect(host);
-            $location.path('/overview');
+            if ($scope.username == "sql") {
+              $location.path('/sql');
+            } else {
+              $location.path('/overview');
+            }
+
             break;
           case 401:
             $scope.unauthorized = true;
@@ -759,6 +779,15 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
 
     this.connect = function(host) {
       DataService.setHost(host);
+    };
+
+    this.authInfo = function(hosts, success) {
+      var data = {host: hosts};
+      var config = {method: 'POST', url: 'auth/info', data: data};
+      var failure = function(data) {
+        AlertService.error('Error get authInfo ');
+      };
+      $http(config).success(success).error(failure);
     };
 
     this.addAndConnect = function(host, clusterName, sqlUrl) {
@@ -1103,6 +1132,7 @@ angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
     $scope.host = undefined;
     $scope.username = undefined;
     $scope.refreshInterval = RefreshService.getInterval();
+    $scope.isAdmin = false;
 
     $scope.setRefreshInterval = function(interval) {
       RefreshService.setInterval(interval);
@@ -1114,6 +1144,7 @@ angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
       $scope.cluster_name = undefined;
       $scope.host = undefined;
       $scope.username = undefined;
+      $scope.isAdmin = false;
       DataService.disconnect();
     };
 
@@ -1127,6 +1158,14 @@ angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
             $scope.status = data.status;
             $scope.cluster_name = data.cluster_name;
             $scope.username = data.username;
+            console.log(data.username);
+            if (data.username == 'sql') {
+              $scope.isAdmin = false;
+            } else {
+              $scope.isAdmin = true;
+            }
+            console.log($scope.isAdmin);
+
             $scope.host = DataService.getHost();
             PageService.setup($scope.cluster_name, $scope.status);
           },
@@ -1134,6 +1173,7 @@ angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
             $scope.status = undefined;
             $scope.cluster_name = undefined;
             $scope.host = undefined;
+            $scope.isAdmin = true;
             PageService.setup();
           }
         );
@@ -2119,20 +2159,20 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
     );
 
     var success = function(response) {
-
-      if (response.explain) {
-        $scope.explainText = JSON.stringify(response.explain, undefined, 2);
-        $scope.explain.setValue($scope.explainText);
-        $scope.explainHead = response.explainHead;
-      }
+      console.log(response);
+      // if (response.explain) {
+      //   $scope.explainText = JSON.stringify(response.explain, undefined, 2);
+      //   $scope.explain.setValue($scope.explainText);
+      //   $scope.explainHead = response.explainHead;
+      // }
       delete response.explain;
       delete response.explainHead;
-      if (response.startsWith("{")) {
-        $scope.responseObj = JSON.stringify(response, undefined, 2);
-      } else {
-        $scope.responseObj = response;
-      }
-
+      // if (typeof response == 'string' && response.startsWith("{")) {
+      //   $scope.responseObj = JSON.stringify(response, undefined, 2);
+      // } else {
+      //   $scope.responseObj = response;
+      // }
+      $scope.responseObj = JSON.stringify(response, undefined, 2);
       $scope.rawReuslt.setValue($scope.responseObj);
       $scope.resultList = response.result;
       $scope.resultKeys = Object.keys($scope.resultList);
@@ -3446,6 +3486,11 @@ angular.module('cerebro').factory('DataService', ['$rootScope', '$timeout',
       this.setHost($location.search().host);
     }
 
+    //--- all---
+    this.getAuthInfo = function(success, error) {
+      clusterRequest('auth/info', {}, success, error);
+    };
+
     // ---------- Navbar ----------
     this.getNavbarData = function(success, error) {
       clusterRequest('navbar', {}, success, error);
@@ -3506,6 +3551,7 @@ angular.module('cerebro').factory('DataService', ['$rootScope', '$timeout',
           url: path,
           data: angular.merge(data, defaultData) // adds host to data
         };
+        //console.log(config);
         request(config, success, error);
       }
     };

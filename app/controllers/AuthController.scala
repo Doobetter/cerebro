@@ -1,11 +1,12 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-
 import akka.actor.ActorSystem
 import controllers.auth.{AuthAction, AuthenticationModule}
 import forms.LoginForm
+import models.CerebroResponse
 import play.api.Configuration
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.InjectedController
 
 

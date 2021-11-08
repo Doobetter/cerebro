@@ -28,20 +28,20 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
     );
 
     var success = function(response) {
-
-      if (response.explain) {
-        $scope.explainText = JSON.stringify(response.explain, undefined, 2);
-        $scope.explain.setValue($scope.explainText);
-        $scope.explainHead = response.explainHead;
-      }
+      console.log(response);
+      // if (response.explain) {
+      //   $scope.explainText = JSON.stringify(response.explain, undefined, 2);
+      //   $scope.explain.setValue($scope.explainText);
+      //   $scope.explainHead = response.explainHead;
+      // }
       delete response.explain;
       delete response.explainHead;
-      if (response.startsWith("{")) {
-        $scope.responseObj = JSON.stringify(response, undefined, 2);
-      } else {
-        $scope.responseObj = response;
-      }
-
+      // if (typeof response == 'string' && response.startsWith("{")) {
+      //   $scope.responseObj = JSON.stringify(response, undefined, 2);
+      // } else {
+      //   $scope.responseObj = response;
+      // }
+      $scope.responseObj = JSON.stringify(response, undefined, 2);
       $scope.rawReuslt.setValue($scope.responseObj);
       $scope.resultList = response.result;
       $scope.resultKeys = Object.keys($scope.resultList);

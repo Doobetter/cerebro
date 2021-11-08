@@ -34,6 +34,15 @@ angular.module('cerebro').factory('ConnectDataService', ['$http', 'DataService',
       DataService.setHost(host);
     };
 
+    this.authInfo = function(hosts, success) {
+      var data = {host: hosts};
+      var config = {method: 'POST', url: 'auth/info', data: data};
+      var failure = function(data) {
+        AlertService.error('Error get authInfo ');
+      };
+      $http(config).success(success).error(failure);
+    };
+
     this.addAndConnect = function(host, clusterName, sqlUrl) {
       var data = {host: host, name: clusterName, sqlUrl: sqlUrl};
 
