@@ -1,3 +1,4 @@
+# 1 无ide开发
 ### 1.1 后端代码 
 
 ```
@@ -35,4 +36,9 @@ cerebro-master/target/universal/cerebro-0.8.5.zip
 ```
 bin/cerebro &>/dev/null &
 ```
+
+# 2 IDEA 开发
+
+参考 play framework 的一般开发过程
+https://www.jianshu.com/p/190027067d85
 

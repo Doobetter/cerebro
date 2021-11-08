@@ -19,8 +19,9 @@ object CerebroRequestSpec extends Specification with Mockito {
     val user = None
     val whitelistHeaders = Seq("a-header")
     val body = Json.obj("host" -> "host1")
-    val host
-    = Host("host1", None, whitelistHeaders)
+    val host = {
+      Host("host1", None, None, whitelistHeaders)
+    }
 
     val request = mock[AuthRequest[JsValue]]
     request.body returns body
