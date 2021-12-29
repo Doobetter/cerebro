@@ -2160,11 +2160,11 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
 
     var success = function(response) {
       console.log(response);
-      // if (response.explain) {
-      //   $scope.explainText = JSON.stringify(response.explain, undefined, 2);
-      //   $scope.explain.setValue($scope.explainText);
-      //   $scope.explainHead = response.explainHead;
-      // }
+      if (response.explain) {
+        $scope.explainText = JSON.stringify(response.explain, undefined, 2);
+        $scope.explain.setValue($scope.explainText);
+        $scope.explainHead = response.explainHead;
+      }
       delete response.explain;
       delete response.explainHead;
       // if (typeof response == 'string' && response.startsWith("{")) {

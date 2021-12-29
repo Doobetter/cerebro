@@ -2,9 +2,14 @@ package models
 
 import controllers.auth.AuthRequest
 import exceptions.{MissingRequiredParamException, MissingTargetHostException}
-import play.api.libs.json.{JsArray, JsObject, JsValue}
+import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
+import play.api.mvc.Cookies
 
 case class CerebroRequest(val target: ElasticServer, body: JsValue, val user: Option[User]) {
+  private var cookies :Cookies = null;
+  def getCookes(): Cookies = {
+    return cookies
+  }
 
   def get(name: String) =
     (body \ name).asOpt[String].getOrElse(throw MissingRequiredParamException(name))
@@ -39,6 +44,10 @@ object CerebroRequest {
   def apply(request: AuthRequest[JsValue], hosts: Hosts): CerebroRequest = {
     val body = request.body
 
+    // get value from cookies
+
+
+
     val hostName = (body \ "host").asOpt[String].getOrElse(throw MissingTargetHostException)
     val username = (body \ "username").asOpt[String]
     val password = (body \ "password").asOpt[String]
@@ -54,8 +63,9 @@ object CerebroRequest {
         ElasticServer(host.copy(authentication = a.orElse(requestAuth)), headers)
       case None => ElasticServer(Host(hostName, requestAuth))
     }
-
-    CerebroRequest(server, body, request.user)
+    var rq = CerebroRequest(server, body, request.user)
+    rq.cookies =  request.cookies
+    return rq
   }
 
 }

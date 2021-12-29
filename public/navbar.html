@@ -14,7 +14,7 @@
 
         <li ng-show="isAdmin"><a class="nav-item nav-link" ng-href="#overview?host={{host}}"><i class="fa fa-sitemap"></i> overview</a></li>
         <li ng-show="isAdmin"><a class="nav-item nav-link" ng-href="#nodes?host={{host}}"><i class="fa fa-server"></i> nodes</a></li>
-        <li ng-show="isAdmin"><a class="nav-item nav-link" ng-href="#rest?host={{host}}"><i class="fa fa-edit"></i> rest</a></li>
+        <li><a class="nav-item nav-link" ng-href="#rest?host={{host}}"><i class="fa fa-edit"></i> rest</a></li>
         <li><a class="nav-item nav-link" ng-href="#sql?host={{host}}"><i class="fa fa-edit"></i> Elatic-SQL</a></li>
         <li ng-show="isAdmin">
           <a target="_self" href="#" data-toggle="dropdown" class="dropdown-toggle">
@@ -66,7 +66,7 @@
         <li ng-show="{{isAdmin}}"><a class="nav-item nav-link" ng-href="#sql?host={{host}}"><i class="fa fa-edit"></i>Kibana</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li>
+        <li ng-show="isAdmin">
           <a target="_self" href="#" data-toggle="dropdown" class="dropdown-toggle">
             <i class="fa fa-fw fa-refresh"></i> {{refreshInterval | timeInterval}} <i class="fa fa-fw fa-caret-down"></i>
           </a>
