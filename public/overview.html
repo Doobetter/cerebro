@@ -75,7 +75,7 @@
             <i class="fa fa-sort-alpha-desc fa-2x normal-action table-control" title="sort descending"
                ng-hide="indices_filter.asc" ng-click="indices_filter.asc = true"></i>
           </div>
-          <div class="col-lg-3 col-md-6">
+          <div ng-show="isAdmin" class="col-lg-3 col-md-6">
             <div class="dropdown">
               <span class="title normal-action" type="button" id="dropcluster" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false" title="more options">
@@ -127,31 +127,31 @@
               <li ng-click="indexStats(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
                 <a target="_self"><i class="fa fa-fw fa-info"> </i> show stats</a>
               </li>
-              <li ng-show="index.closed" ng-click="openIndex(index.name)" data-toggle="modal" href="#confirm_dialog"
+              <li ng-show="index.closed&&isAdmin" ng-click="openIndex(index.name)" data-toggle="modal" href="#confirm_dialog"
                   target="_self">
                 <a target="_self"><i class="fa fa-fw fa-folder-open"> </i> open index</a>
               </li>
-              <li ng-hide="index.closed" ng-click="closeIndex(index.name)" data-toggle="modal" href="#confirm_dialog"
+              <li ng-show="isAdmin&&!index.closed" ng-click="closeIndex(index.name)" data-toggle="modal" href="#confirm_dialog"
                   target="_self">
                 <a target="_self"><i class="fa fa-fw fa-folder"> </i> close index</a>
               </li>
-              <li ng-click="forceMerge(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
+              <li  ng-show="isAdmin" ng-click="forceMerge(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
                 <a target="_self"><i class="fa fa-fw fa-wrench"> </i> force merge</a>
               </li>
-              <li ng-click="refreshIndex(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
+              <li  ng-show="isAdmin" ng-click="refreshIndex(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
                 <a target="_self"><i class="fa fa-fw fa-refresh"> </i> refresh index</a>
               </li>
-              <li ng-click="flushIndex(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
+              <li  ng-show="isAdmin" ng-click="flushIndex(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
                 <a target="_self"><i class="fa fa-fw fa-gavel"> </i> flush index</a>
               </li>
-              <li ng-click="clearIndexCache(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
+              <li  ng-show="isAdmin" ng-click="clearIndexCache(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
                 <a target="_self"><i class="fa fa-fw fa-circle-o"> </i> clear cache</a>
               </li>
-              <li ng-click="showIndexSettings(index.name)">
+              <li  ng-show="isAdmin" ng-click="showIndexSettings(index.name)">
                 <a target="_self"><i class="fa fa-fw fa-cog"> </i> index settings</a>
               </li>
-              <li class="divider"></li>
-              <li ng-click="deleteIndex(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
+              <li  ng-show="isAdmin" class="divider"></li>
+              <li  ng-show="isAdmin" ng-click="deleteIndex(index.name)" data-toggle="modal" href="#confirm_dialog" target="_self">
                 <a target="_self"><i class="fa fa-fw fa-trash red"> </i> delete index</a>
               </li>
             </ul>

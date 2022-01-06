@@ -1,13 +1,14 @@
-angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
+angular.module('cerebro').controller('NavbarController', ['$rootScope', '$scope', '$http',
   'PageService', 'DataService', 'RefreshService',
-  function($scope, $http, PageService, DataService, RefreshService) {
+  function($rootScope, $scope, $http, PageService, DataService, RefreshService) {
 
     $scope.status = undefined;
     $scope.cluster_name = undefined;
     $scope.host = undefined;
     $scope.username = undefined;
     $scope.refreshInterval = RefreshService.getInterval();
-    $scope.isAdmin = false;
+    //$scope.isAdmin = false;
+    $rootScope.isAdmin = false; // 全局控制
 
     $scope.setRefreshInterval = function(interval) {
       RefreshService.setInterval(interval);
@@ -19,7 +20,8 @@ angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
       $scope.cluster_name = undefined;
       $scope.host = undefined;
       $scope.username = undefined;
-      $scope.isAdmin = false;
+      //$scope.isAdmin = false;
+      $rootScope.isAdmin = false;
       DataService.disconnect();
     };
 
@@ -36,10 +38,12 @@ angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
             console.log(data.username);
             if (data.username == 'sql') {
               $scope.isAdmin = false;
+              $rootScope.isAdmin = false;
             } else {
-              $scope.isAdmin = true;
+              //$scope.isAdmin = true;
+              $rootScope.isAdmin = true;
             }
-            console.log($scope.isAdmin);
+            //console.log($scope.isAdmin);
 
             $scope.host = DataService.getHost();
             PageService.setup($scope.cluster_name, $scope.status);
@@ -48,7 +52,8 @@ angular.module('cerebro').controller('NavbarController', ['$scope', '$http',
             $scope.status = undefined;
             $scope.cluster_name = undefined;
             $scope.host = undefined;
-            $scope.isAdmin = true;
+            //$scope.isAdmin = true;
+            $rootScope.isAdmin = true;
             PageService.setup();
           }
         );

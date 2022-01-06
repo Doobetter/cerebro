@@ -34,9 +34,9 @@
       <div class="col-lg-2 col-md-3 form-group">
         <select ng-model="method" class="form-control">
           <option value="GET">GET</option>
-          <option value="PUT">PUT</option>
+          <option ng-show="isAdmin" value="PUT">PUT</option>
           <option value="POST" selected="selected">POST</option>
-          <option value="DELETE">DELETE</option>
+          <option ng-show="isAdmin" value="DELETE">DELETE</option>
         </select>
       </div>
     </div>
