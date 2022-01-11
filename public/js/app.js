@@ -1133,7 +1133,7 @@ angular.module('cerebro').controller('NavbarController', ['$rootScope', '$scope'
     $scope.username = undefined;
     $scope.refreshInterval = RefreshService.getInterval();
     //$scope.isAdmin = false;
-    $rootScope.isAdmin = false;
+    $rootScope.isAdmin = false; // 全局控制
 
     $scope.setRefreshInterval = function(interval) {
       RefreshService.setInterval(interval);

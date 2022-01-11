@@ -42,3 +42,9 @@ bin/cerebro &>/dev/null &
 参考 play framework 的一般开发过程
 https://www.jianshu.com/p/190027067d85
 
+
+1. 加请求日志，记录用户操作
+2. 单点登录获取cookie中的用户名
+3. elastic-sql 模块
+
+

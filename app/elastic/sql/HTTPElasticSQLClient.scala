@@ -23,15 +23,15 @@ class HTTPElasticSQLClient @Inject()(client: WSClient) {
   def process( body: String, target: ElasticServer) = {
     execute("POST", body, target, Seq(TextContentType), null)
   }
-  def process( body: String, cookies: Cookies, target: ElasticServer) = {
-    execute("POST", body, target, Seq(TextContentType), cookies)
+  def process( body: String, x_webauth_user: String, target: ElasticServer) = {
+    execute("POST", body, target, Seq(TextContentType), x_webauth_user)
   }
 
 
   protected def execute(method: String,
                         body: String,
                         target: ElasticServer,
-                        headers: Seq[(String, String)] = Seq(), cookies: Cookies): Future[ElasticResponse] = {
+                        headers: Seq[(String, String)] = Seq(), x_webauth_user: String): Future[ElasticResponse] = {
 
     if (target.host.sql.isEmpty) {
       // 没有配置直接返回错误
@@ -44,21 +44,13 @@ class HTTPElasticSQLClient @Inject()(client: WSClient) {
     val sqlUsername = target.host.sql.get.username.getOrElse("cerebro");
     val sqlPassword = target.host.sql.get.password.getOrElse("cerebro");
 
-    log.info("{}",cookies)
-    var x_webauth_user: String = ""
-    if(cookies!=null){
-      // x_webauth_user=xxxx 单点登录 获取cookies 用户名
-      val  x_webauth_user_cookie = cookies.get("x_webauth_user").orNull
-      if (null!=x_webauth_user_cookie){
-        x_webauth_user = x_webauth_user_cookie.value
 
-      }
+    var xwuser: String = ""
+    if(x_webauth_user!=null){
+      xwuser = x_webauth_user
     }
-    log.info("x_webauth_user="+x_webauth_user)
 
-
-
-    val mergedHeaders = headers ++ Seq((sqlUsername, sqlPassword),("x_webauth_user",x_webauth_user))
+    val mergedHeaders = headers ++ Seq((sqlUsername, sqlPassword),("x_webauth_user",xwuser))
 
     val request =  client.url(url).withMethod(method).withBody(body).withRequestTimeout(60.seconds).withHttpHeaders(mergedHeaders:_*)
 

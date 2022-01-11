@@ -29,8 +29,8 @@ class SqlController @Inject()(val authentication: AuthenticationModule,
   def request = process { request =>
 
     val body = request.get("data") // sql语句
-    val cookies = request.getCookes()
-    client.process(body, cookies, request.target).map {
+    //val cookies = request.getCookies()
+    client.process(body, request.getXWebAuthUser(), request.target).map {
       case s: Success =>
         val bodyAsString = body
         val username = request.user.map(_.name).getOrElse("")
