@@ -1846,7 +1846,12 @@ angular.module('cerebro').controller('RestController', ['$scope', '$http',
 
     $scope.setup = function() {
       $scope.editor = AceEditorService.init('rest-client-editor');
-      $scope.editor.setValue('{}');
+      var empty = JSON.stringify(
+          {},
+          undefined,
+          2
+      );
+      $scope.editor.setValue(empty); // 编辑框 初始值
       RestDataService.load(
         function(response) {
           $scope.host = response.host;
@@ -2219,10 +2224,12 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
       // explain json editor
       $scope.explain = AceEditorService.init('explain-editor');
       $scope.explain.setReadOnly(true);
+      //$scope.explain.setValue("{\n}");
       $scope.explain.setValue(emptyExplain);
       // rawReuslt
       $scope.rawReuslt = AceEditorService.init('raw-result-editor');
       $scope.rawReuslt.setReadOnly(true);
+      //$scope.rawReuslt.setValue("{\n}");
       $scope.rawReuslt.setValue(emptyExplain);
     };
 
@@ -2281,7 +2288,7 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
         path = '/' + path;
       }
       var body = $scope.editor.getValue();
-      var curl = 'curl -X POST \'' + $scope.url + '/a3' +
+      var curl = 'curl -X POST \'' + $scope.url +
         '\' -H \'Content-Type: text/plain\'' +
         ' -d \'' + body + '\'';
       ClipboardService.copy(

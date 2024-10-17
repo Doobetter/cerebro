@@ -11,7 +11,7 @@ class BasicAuthService @Inject()(globalConfig: Configuration) extends AuthServic
   def auth(username: String, password: String): Option[String] = {
     (username, password) match {
       case (config.username, config.password) => Some(username)
-      case ("sql","sql123") => Some(username)
+      case (config.normal_user, config.normal_upwd) => Some(username)
       case _ => None
     }
   }

@@ -36,7 +36,12 @@ angular.module('cerebro').controller('RestController', ['$scope', '$http',
 
     $scope.setup = function() {
       $scope.editor = AceEditorService.init('rest-client-editor');
-      $scope.editor.setValue('{}');
+      var empty = JSON.stringify(
+          {},
+          undefined,
+          2
+      );
+      $scope.editor.setValue(empty); // 编辑框 初始值
       RestDataService.load(
         function(response) {
           $scope.host = response.host;

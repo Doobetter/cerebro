@@ -10,4 +10,6 @@ class BasicAuthConfig(config: Configuration) extends AuthConfig {
   final val username = getSetting("username")
   final val password = getSetting("password")
 
+  final val normal_user = getSetting("normal_user")
+  final val normal_upwd = getSetting("normal_upwd")
 }

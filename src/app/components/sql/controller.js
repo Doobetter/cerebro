@@ -83,10 +83,12 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
       // explain json editor
       $scope.explain = AceEditorService.init('explain-editor');
       $scope.explain.setReadOnly(true);
+      //$scope.explain.setValue("{\n}");
       $scope.explain.setValue(emptyExplain);
       // rawReuslt
       $scope.rawReuslt = AceEditorService.init('raw-result-editor');
       $scope.rawReuslt.setReadOnly(true);
+      //$scope.rawReuslt.setValue("{\n}");
       $scope.rawReuslt.setValue(emptyExplain);
     };
 
@@ -145,7 +147,7 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
         path = '/' + path;
       }
       var body = $scope.editor.getValue();
-      var curl = 'curl -X POST \'' + $scope.url + '/a3' +
+      var curl = 'curl -X POST \'' + $scope.url +
         '\' -H \'Content-Type: text/plain\'' +
         ' -d \'' + body + '\'';
       ClipboardService.copy(

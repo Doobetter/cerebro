@@ -11,8 +11,11 @@ $sbt
 ### 1.2 页面开发
 
 首先安装依赖
+yarn install
 
+编译
 grunt build
+
 
 grunt watch
 

@@ -1,3 +1,3 @@
 package models
 
-case class User(name: String)
+case class User(name: String, webAuthUser: Option[String] = None)

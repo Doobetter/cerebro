@@ -24,7 +24,7 @@ class SqlController @Inject()(val authentication: AuthenticationModule,
                               sqlHistoryDAO: SqlHistoryDAO) extends BaseController {
 
   private val logger = Logger("application")
-  private final val defualtElasticSQLServer = new ElasticSQLServer("http://localhost:9400/elastic/search/a4",None,None)
+  private final val defaultElasticSQLServer = new ElasticSQLServer("http://localhost:9400/elastic/search/a4",None,None)
 
   def request = process { request =>
 
@@ -34,8 +34,9 @@ class SqlController @Inject()(val authentication: AuthenticationModule,
       case s: Success =>
         val bodyAsString = body
         val username = request.user.map(_.name).getOrElse("")
+        val webAuthUser:String = request.user.flatMap(_.webAuthUser).getOrElse("1")
         val hostname = request.target.host.name;
-        Try(sqlHistoryDAO.save(SqlRequest(bodyAsString, username, hostname, new Date(System.currentTimeMillis)))).recover {
+        Try(sqlHistoryDAO.save(SqlRequest(bodyAsString,webAuthUser, username, hostname, new Date(System.currentTimeMillis)))).recover {
           case DAOException(msg, e) => logger.error(msg, e)
         }
         CerebroResponse(s.status, s.body)
@@ -50,7 +51,7 @@ class SqlController @Inject()(val authentication: AuthenticationModule,
       case Success(status, body) =>
         val data = Json.obj(
           "indices" -> Indices(body),
-          "url"    -> request.target.host.sql.getOrElse(defualtElasticSQLServer).url
+          "url"    -> request.target.host.sql.getOrElse(defaultElasticSQLServer).url
         )
         CerebroResponse(status, data)
 
@@ -62,7 +63,8 @@ class SqlController @Inject()(val authentication: AuthenticationModule,
   def history = process { request =>
     implicit val writes = Json.writes[RestRequest]
     val dateFormat = new SimpleDateFormat("dd/MM HH:mm:ss")
-    sqlHistoryDAO.all(request.user.map(_.name).getOrElse(""), request.target.host.name).map {
+    val webAuthUser:String = request.user.flatMap(_.webAuthUser).getOrElse("1")
+    sqlHistoryDAO.all(webAuthUser, request.user.map(_.name).getOrElse(""), request.target.host.name).map {
       case requests =>
         val body = requests.map { request =>
           Json.obj(

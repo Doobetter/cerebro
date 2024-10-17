@@ -17,11 +17,11 @@ import scala.util.control.NonFatal
 @ImplementedBy(classOf[SqlHistoryDAOImpl])
 trait SqlHistoryDAO {
 
-  def all(username: String, hostname: String): Future[Seq[SqlRequest]]
+  def all(webAuthUser: String, username: String, hostname: String): Future[Seq[SqlRequest]]
 
   def save(entry: SqlRequest): Future[Option[String]]
 
-  def clear(username: String): Future[Int]
+  def clear(webAuthUser: String, username: String): Future[Int]
 
 }
 
@@ -34,23 +34,24 @@ class SqlHistoryDAOImpl @Inject()(dbConfigProvider: DatabaseConfigProvider,
 
   private val requests = TableQuery[SqlRequests]
 
-  def all(username: String , hostname: String): Future[Seq[SqlRequest]] =
-    dbConfig.db.run(requests.filter(_.username === username).filter( _.hostname === hostname ).sortBy(_.createdAt.desc).result).map { reqs =>
-      reqs.map { r => SqlRequest(r.body, r.username, r.hostname, new Date(r.createdAt)) }
+  def all(webAuthUser: String, username: String , hostname: String): Future[Seq[SqlRequest]] = {
+    dbConfig.db.run(requests.filter(_.username === username).filter( _.webAuthUser === webAuthUser ).filter( _.hostname === hostname ).sortBy(_.createdAt.desc).result).map { reqs =>
+      reqs.map { r => SqlRequest(r.body, r.webAuthUser, r.username, r.hostname, new Date(r.createdAt)) }
     }.recover {
       case NonFatal(e) => throw DAOException(s"Error loading requests for [$username]", e)
     }
+  }
 
   def save(req: SqlRequest): Future[Option[String]] =
     findByMd5(req.md5).flatMap {
       case Some(p) =>
         update(p, req.createdAt.getTime)
       case None    =>
-        create(req).map { md5 => trim(req.username); md5 }
+        create(req).map { md5 => trim(req.webAuthUser, req.username); md5 }
     }
 
-  def clear(username: String): Future[Int] =
-    dbConfig.db.run(requests.filter(_.username === username).delete).recover {
+  def clear(webAuthUser: String, username: String): Future[Int] =
+    dbConfig.db.run(requests.filter(_.webAuthUser === webAuthUser).filter(_.username === username).delete).recover {
       case NonFatal(e) => throw DAOException(s"Error clearing all requests for [$username]", e)
     }
 
@@ -68,21 +69,21 @@ class SqlHistoryDAOImpl @Inject()(dbConfigProvider: DatabaseConfigProvider,
   }
 
   private def create(req: SqlRequest): Future[Option[String]] = {
-    val newReq = HashedSqlRequest(req.body, req.username, req.hostname, req.createdAt.getTime, req.md5)
+    val newReq = HashedSqlRequest(req.body, req.webAuthUser, req.username, req.hostname, req.createdAt.getTime, req.md5)
     val action = requests returning requests.map(_.id) += newReq
     dbConfig.db.run(action).map { _ => Some(newReq.md5) }.recover {
       case NonFatal(e) => throw DAOException(s"Error while storing request [$req]", e)
     }
   }
 
-  private def trim(username: String): Unit = {
+  private def trim(webAuthUser: String, username: String): Unit = {
     val action = sqlu"""
           DELETE FROM sql_requests WHERE id IN (
-            SELECT id FROM sql_requests WHERE username=$username ORDER BY created_at DESC LIMIT -1 OFFSET $max
+            SELECT id FROM sql_requests WHERE webAuthUser=$webAuthUser AND username=$username ORDER BY created_at DESC LIMIT -1 OFFSET $max
           )
         """
     dbConfig.db.run(action).recover {
-      case NonFatal(e) => throw DAOException(s"Error while triming history for [$username]", e)
+      case NonFatal(e) => throw DAOException(s"Error while triming history for [$username].[$webAuthUser] ", e)
     }
   }
 

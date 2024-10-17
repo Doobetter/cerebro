@@ -6,12 +6,13 @@ import java.util.Date
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.Tag
 
-case class HashedSqlRequest( body: String, username: String, hostname: String, createdAt: Long, md5: String)
+case class HashedSqlRequest( body: String, webAuthUser: String, username: String, hostname: String, createdAt: Long, md5: String)
 
-case class SqlRequest( body: String, username: String, hostname: String, createdAt: Date) {
+case class SqlRequest( body: String,webAuthUser: String, username: String, hostname: String, createdAt: Date) {
 
   val md5 = MessageDigest.getInstance("MD5").digest(
-    (username + hostname + body ).getBytes
+    //(username + hostname + body ).getBytes
+    (webAuthUser + username + hostname + body ).getBytes
   ).map("%02x".format(_)).mkString
 
 }
@@ -19,7 +20,7 @@ case class SqlRequest( body: String, username: String, hostname: String, created
 object SqlRequest {
 
   def apply(request: HashedSqlRequest): SqlRequest = {
-    SqlRequest(request.body, request.username, request.hostname, new Date(request.createdAt))
+    SqlRequest(request.body, request.webAuthUser,request.username, request.hostname, new Date(request.createdAt))
   }
 
 }
@@ -27,6 +28,8 @@ object SqlRequest {
 class SqlRequests(tag: Tag) extends Table[HashedSqlRequest](tag, "sql_requests") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+
+  def webAuthUser = column[String]("webAuthUser")
 
   def username = column[String]("username")
 
@@ -38,6 +41,6 @@ class SqlRequests(tag: Tag) extends Table[HashedSqlRequest](tag, "sql_requests")
 
   def createdAt = column[Long]("created_at")
 
-  def * = ( body, username, hostname, createdAt, md5) <> (HashedSqlRequest.tupled, HashedSqlRequest.unapply)
+  def * = ( body,webAuthUser, username, hostname, createdAt, md5) <> (HashedSqlRequest.tupled, HashedSqlRequest.unapply)
 
 }
