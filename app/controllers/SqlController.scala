@@ -34,7 +34,8 @@ class SqlController @Inject()(val authentication: AuthenticationModule,
       case s: Success =>
         val bodyAsString = body
         val username = request.user.map(_.name).getOrElse("")
-        val webAuthUser:String = request.user.flatMap(_.webAuthUser).getOrElse("1")
+        val webAuthUser:String = request.getXWebAuthUser() //request.user.flatMap(_.webAuthUser).getOrElse(request.getXWebAuthUser())
+        //logger.info(s"x_web_auth [${webAuthUser}]")
         val hostname = request.target.host.name;
         Try(sqlHistoryDAO.save(SqlRequest(bodyAsString,webAuthUser, username, hostname, new Date(System.currentTimeMillis)))).recover {
           case DAOException(msg, e) => logger.error(msg, e)
@@ -62,8 +63,8 @@ class SqlController @Inject()(val authentication: AuthenticationModule,
 
   def history = process { request =>
     implicit val writes = Json.writes[RestRequest]
-    val dateFormat = new SimpleDateFormat("dd/MM HH:mm:ss")
-    val webAuthUser:String = request.user.flatMap(_.webAuthUser).getOrElse("1")
+    val dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss")
+    val webAuthUser:String = request.getXWebAuthUser() //request.user.flatMap(_.webAuthUser).getOrElse(request.getXWebAuthUser())
     sqlHistoryDAO.all(webAuthUser, request.user.map(_.name).getOrElse(""), request.target.host.name).map {
       case requests =>
         val body = requests.map { request =>

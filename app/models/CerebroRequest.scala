@@ -78,10 +78,10 @@ object CerebroRequest {
       val  x_webauth_user_cookie = cookies.get("x_webauth_user").orNull
       if (null!=x_webauth_user_cookie){
         x_webauth_user = x_webauth_user_cookie.value
-
       }
     }
     rq.x_webauth_user = x_webauth_user
+
     if(!noprints.contains(request.path)){
       log.info("login_user={}, path={},  rawQueryString={}, body={}", x_webauth_user,request.path,request.rawQueryString, body)
     }

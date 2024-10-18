@@ -14,8 +14,10 @@ final class AuthAction(auth: AuthenticationModule, redirect: Boolean, override v
 
   def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]) = {
     if (auth.isEnabled) {
+      //
+      val webAuthUser = request.headers.headers.find(_._1.equalsIgnoreCase("x_webauth_user")).map(_._2).getOrElse("1")
       request.session.get(AuthAction.SESSION_USER).map { username =>
-        block(new AuthRequest(Some(User(username)), request))
+        block(new AuthRequest(Some(User(username,Some(webAuthUser))), request))
       }.getOrElse {
         if (redirect) {
           Future.successful(
