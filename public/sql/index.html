@@ -97,16 +97,25 @@
                     <table class="table table-bordered">
                         <thead>
                         <tr>
-                            <th ng-repeat="(header, value) in showResult[0]">
-                                {{header}}</th>
+<!--                            <th ng-repeat="(header, value) in showResult[0]">-->
+<!--                                {{header}}</th>-->
+                            <!-- 使用预先定义的headers列表 -->
+                            <th ng-repeat="header in headers">{{header}}</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="row in showResult">
-                            <td ng-repeat="(key, value) in row">
-                                {{value}}
-                            </td>
-                        </tr>
+<!--                        <tr ng-repeat="row in showResult">-->
+<!--                            <td ng-repeat="(key, value) in row">-->
+<!--                                {{value}}-->
+<!--                            </td>-->
+<!--                        </tr>-->
+
+                            <tr ng-repeat="row in showResult">
+                                <!-- 根据headers列表来获取对应的值 -->
+                                <td ng-repeat="header in headers">
+                                    {{row[header]}}
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

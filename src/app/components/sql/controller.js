@@ -136,6 +136,11 @@ angular.module('cerebro').controller('SqlController', ['$scope', '$http',
       }else {
         var resultValue = $scope.resultList[result];
         $scope.showResult = resultValue.data;
+        if ($scope.showResult.length > 0) {
+          $scope.headers = Object.keys($scope.showResult[0]).sort(); // 或者按你需要的方式排序
+        } else {
+          $scope.headers = [];
+        }
         angular.element('#raw-result-editor')[0].style.display = 'none';
         angular.element('#oneResult')[0].style.display = '';
       }
